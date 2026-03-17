@@ -1,0 +1,1659 @@
+/* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
+:root {
+  /* Colours — light Notion-like theme */
+  --color-bg:             #ffffff;
+  --color-surface:        #f7f7f5;
+  --color-surface-2:      #efefed;
+  --color-border:         #e9e9e7;
+  --color-text:           #1a1a1a;
+  --color-text-secondary: #787774;
+  --color-accent:         #e03e3e;
+  --color-accent-subtle:  rgba(224, 62, 62, 0.08);
+  --color-danger:         #e03e3e;
+  --color-danger-bg:      #fff0f0;
+
+  /* Radius */
+  --radius-sm:  6px;
+  --radius-md:  10px;
+  --radius-lg:  14px;
+  --radius-xl:  20px;
+  --radius-2xl: 28px;
+
+  /* Spacing */
+  --space-xs:  4px;
+  --space-sm:  8px;
+  --space-md:  16px;
+  --space-lg:  24px;
+  --space-xl:  32px;
+  --space-2xl: 48px;
+
+  /* Typography */
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* Interaction */
+  --touch: 44px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
+  --shadow-lg: 0 8px 28px rgba(0,0,0,0.12), 0 3px 10px rgba(0,0,0,0.06);
+
+  /* Transitions */
+  --transition:      200ms ease;
+  --transition-slow: 340ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Prevent iOS double-tap zoom on all buttons throughout the app */
+button {
+  touch-action: manipulation;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  height: 100%;
+}
+
+body {
+  font-family: var(--font);
+  color: var(--color-text);
+  background: var(--color-bg);
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+
+/* ============================================================
+   APP SHELL
+   ============================================================ */
+#app {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.screen {
+  display: none;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: var(--color-bg);
+}
+
+.screen.active {
+  display: flex;
+}
+
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-md);
+  padding-top: env(safe-area-inset-top);
+  height: calc(56px + env(safe-area-inset-top));
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+  gap: var(--space-sm);
+}
+
+.header-app-title {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  color: var(--color-text);
+}
+
+.header-center {
+  flex: 1;
+  text-align: center;
+  min-width: 0;
+}
+
+.header-song-title {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-song-meta {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Icon button (header, toolbar) */
+.btn-icon {
+  width: var(--touch);
+  height: var(--touch);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  transition: background var(--transition);
+  flex-shrink: 0;
+}
+
+.btn-icon:active {
+  background: var(--color-surface-2);
+}
+
+.btn-icon svg {
+  width: 22px;
+  height: 22px;
+  pointer-events: none;
+}
+
+/* Back button */
+.btn-back {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: var(--touch);
+  padding: 0 var(--space-sm) 0 4px;
+  background: none;
+  border: none;
+  color: var(--color-accent);
+  font-size: 15px;
+  font-weight: 500;
+  font-family: var(--font);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: opacity var(--transition);
+  flex-shrink: 0;
+  min-width: var(--touch);
+}
+
+.btn-back:active {
+  opacity: 0.55;
+}
+
+.btn-back svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+/* Header spacer: mirrors back button to keep center title truly centred */
+.header-spacer {
+  flex-shrink: 0;
+}
+
+
+/* ============================================================
+   SCROLLABLE CONTENT AREA
+   ============================================================ */
+.scroll-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  /* FAB height (56) + gap (16) + safe area */
+  padding-bottom: calc(88px + env(safe-area-inset-bottom));
+}
+
+
+/* ============================================================
+   SONG LIST
+   ============================================================ */
+.song-list {
+  padding: 0;
+}
+
+
+/* ============================================================
+   SONG CARD
+   ============================================================ */
+.song-card-wrapper {
+  position: relative;
+  margin-bottom: 0;
+  border-radius: 0;
+  overflow: hidden;
+}
+
+/* Delete zone revealed on swipe */
+.song-card-delete-zone {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-danger);
+  border-radius: 0;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font);
+  cursor: pointer;
+  user-select: none;
+  letter-spacing: 0.1px;
+}
+
+/* The card itself sits on top of the delete zone */
+.song-card {
+  position: relative;
+  background: var(--color-bg);
+  border-radius: 0;
+  padding: var(--space-md) var(--space-md);
+  cursor: pointer;
+  will-change: transform;
+  transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+  user-select: none;
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.song-card:active {
+  background: var(--color-surface);
+}
+
+.song-card.swiped {
+  transform: translateX(-80px);
+}
+
+.song-card-title {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--color-text);
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.song-card-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: nowrap;
+}
+
+.song-card-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  background: var(--color-surface-2);
+  border-radius: var(--radius-sm);
+  padding: 2px 7px;
+  border: 1px solid var(--color-border);
+  white-space: nowrap;
+  letter-spacing: 0.1px;
+  text-transform: uppercase;
+}
+
+.song-card-bpm {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.song-card-date {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+
+/* ============================================================
+   EMPTY STATE
+   ============================================================ */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--space-2xl) var(--space-xl);
+  gap: var(--space-md);
+  min-height: 55vh;
+}
+
+.empty-state-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--color-surface-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-sm);
+}
+
+.empty-state-icon svg {
+  width: 24px;
+  height: 24px;
+  color: var(--color-text-secondary);
+}
+
+.empty-state-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--color-text);
+  letter-spacing: -0.2px;
+}
+
+.empty-state-subtitle {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  line-height: 1.55;
+  max-width: 240px;
+}
+
+
+/* ============================================================
+   FAB (Floating Action Button)
+   ============================================================ */
+.fab {
+  position: fixed;
+  bottom: calc(var(--space-lg) + env(safe-area-inset-bottom));
+  right: var(--space-lg);
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--color-text);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-lg);
+  transition: transform var(--transition), box-shadow var(--transition);
+  z-index: 100;
+}
+
+.fab:active {
+  transform: scale(0.91);
+  box-shadow: var(--shadow-sm);
+}
+
+.fab svg {
+  width: 22px;
+  height: 22px;
+  pointer-events: none;
+}
+
+
+/* ============================================================
+   BOTTOM SHEET
+   ============================================================ */
+.sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.36);
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-slow);
+}
+
+.sheet-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.bottom-sheet {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--color-bg);
+  border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+  padding: var(--space-sm) var(--space-md) 0;
+  padding-bottom: calc(var(--space-xl) + env(safe-area-inset-bottom));
+  transform: translateY(100%);
+  transition: transform var(--transition-slow);
+  max-height: 92dvh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  box-shadow: 0 -2px 24px rgba(0,0,0,0.10);
+}
+
+.bottom-sheet.open {
+  transform: translateY(0);
+}
+
+.sheet-handle {
+  width: 36px;
+  height: 4px;
+  background: var(--color-border);
+  border-radius: 2px;
+  margin: 0 auto var(--space-md);
+}
+
+.sheet-title {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  margin-bottom: var(--space-lg);
+  color: var(--color-text);
+}
+
+
+/* ============================================================
+   FORM CONTROLS
+   ============================================================ */
+.form-field {
+  margin-bottom: var(--space-lg);
+}
+
+.form-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: var(--space-sm);
+}
+
+/* Text input */
+.form-input {
+  width: 100%;
+  height: 48px;
+  padding: 0 var(--space-md);
+  font-size: 16px;
+  font-family: var(--font);
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color var(--transition);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.form-input:focus {
+  border-color: var(--color-text);
+}
+
+.form-input::placeholder {
+  color: var(--color-text-secondary);
+}
+
+.form-input.error {
+  border-color: var(--color-danger);
+}
+
+.form-error {
+  font-size: 12px;
+  color: var(--color-danger);
+  margin-top: 5px;
+  display: none;
+}
+
+.form-error.visible {
+  display: block;
+}
+
+/* Key grid — 4 columns × 3 rows */
+.key-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-sm);
+}
+
+.key-btn {
+  height: var(--touch);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 500;
+  font-family: var(--font);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.key-btn:active {
+  background: var(--color-surface-2);
+}
+
+.key-btn.selected {
+  background: var(--color-text);
+  color: #fff;
+  border-color: var(--color-text);
+}
+
+/* Mode chips */
+.mode-chips {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.mode-chip {
+  height: 38px;
+  padding: 0 var(--space-md);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: 100px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: var(--font);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+  white-space: nowrap;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.mode-chip:active {
+  background: var(--color-surface-2);
+}
+
+.mode-chip.selected {
+  background: var(--color-text);
+  color: #fff;
+  border-color: var(--color-text);
+}
+
+/* BPM stepper */
+.bpm-stepper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  max-width: 180px;
+}
+
+.bpm-stepper-btn {
+  width: var(--touch);
+  height: var(--touch);
+  flex-shrink: 0;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  font-size: 22px;
+  font-weight: 300;
+  line-height: 1;
+  color: var(--color-text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition);
+  -webkit-appearance: none;
+  appearance: none;
+  font-family: var(--font);
+}
+
+.bpm-stepper-btn:active {
+  background: var(--color-surface-2);
+}
+
+.bpm-stepper-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.bpm-input {
+  flex: 1;
+  height: var(--touch);
+  text-align: center;
+  font-size: 19px;
+  font-weight: 600;
+  font-family: var(--font);
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  -moz-appearance: textfield;
+}
+
+.bpm-input:focus {
+  border-color: var(--color-text);
+}
+
+.bpm-input::-webkit-inner-spin-button,
+.bpm-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
+
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 52px;
+  background: var(--color-text);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 16px;
+  font-weight: 600;
+  font-family: var(--font);
+  cursor: pointer;
+  letter-spacing: -0.2px;
+  transition: opacity var(--transition), transform var(--transition);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.btn-primary:active {
+  opacity: 0.82;
+  transform: scale(0.99);
+}
+
+.btn-primary:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.btn-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 48px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-weight: 500;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: color var(--transition);
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: var(--space-xs);
+}
+
+.btn-secondary:active {
+  color: var(--color-text);
+}
+
+
+/* ============================================================
+   SONG VIEW PLACEHOLDER (Phase 1)
+   ============================================================ */
+.song-view-placeholder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--space-xl);
+  gap: var(--space-sm);
+}
+
+.song-view-placeholder p {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.song-view-placeholder strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: var(--space-xs);
+}
+
+
+/* ============================================================
+   DIVIDER
+   ============================================================ */
+.divider {
+  height: 1px;
+  background: var(--color-border);
+  margin: var(--space-md) 0;
+}
+
+
+/* ============================================================
+   SECTION OVERVIEW BAR
+   ============================================================ */
+.section-overview {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;           /* wrap to multiple rows for songs with many sections */
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg);
+}
+
+.section-overview-segment {
+  flex: none;
+  min-width: 56px;
+  min-height: 64px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 10px;
+  border-right: 1px solid var(--color-border);
+  border-top: none;
+  border-bottom: none;
+  border-left: none;
+  cursor: pointer;
+  background: none;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: background var(--transition);
+  text-align: left;
+}
+
+.section-overview-segment:last-child {
+  border-right: none;
+}
+
+.section-overview-segment:active {
+  background: var(--color-surface-2);
+}
+
+.section-overview-segment.active {
+  background: var(--color-text);
+}
+
+.section-overview-segment.active:active {
+  background: var(--color-text);
+  opacity: 0.85;
+}
+
+.section-overview-segment-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  letter-spacing: -0.1px;
+}
+
+.section-overview-segment.active .section-overview-segment-label {
+  color: #fff;
+}
+
+.section-overview-segment-bars {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
+.section-overview-segment.active .section-overview-segment-bars {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.section-overview-segment-chords {
+  font-size: 10px;
+  color: var(--color-accent);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  min-height: 13px; /* keep layout consistent even when empty */
+}
+
+.section-overview-segment.active .section-overview-segment-chords {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Playing state — highlights the currently playing section */
+.section-overview-segment.playing {
+  background: var(--color-accent-subtle);
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+}
+
+.section-overview-segment.playing .section-overview-segment-label,
+.section-overview-segment.playing .section-overview-segment-bars,
+.section-overview-segment.playing .section-overview-segment-chords {
+  color: var(--color-accent);
+}
+
+
+/* ============================================================
+   SONG VIEW — HEADER ACTIONS (right side)
+   ============================================================ */
+.song-view-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  flex-shrink: 0;
+}
+
+.btn-play-song.active {
+  color: var(--color-accent);
+}
+
+
+/* ============================================================
+   SECTION LIST LAYOUT
+   ============================================================ */
+.section-list {
+  padding: 0;
+}
+
+/* Footer: total bar count */
+.section-list-footer {
+  text-align: center;
+  padding: var(--space-md) 0 var(--space-sm);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  letter-spacing: 0.1px;
+}
+
+/* Inline Add Section button — appears at the bottom of the section list */
+.btn-add-section-inline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 14px var(--space-md);
+  background: none;
+  border: none;
+  border-top: 1px dashed var(--color-border);
+  font-size: 14px;
+  font-weight: 500;
+  font-family: var(--font);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: color var(--transition), background var(--transition);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.btn-add-section-inline:active {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.btn-add-section-inline svg {
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+}
+
+/* Play FAB — fixed bottom-right, always available on song screen */
+.play-fab {
+  position: fixed;
+  bottom: calc(var(--space-lg) + env(safe-area-inset-bottom));
+  right: var(--space-lg);
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: #fff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(224, 62, 62, 0.35);
+  cursor: pointer;
+  transition: background var(--transition), box-shadow var(--transition), transform 0.1s;
+  z-index: 100;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.play-fab:hover {
+  background: #c73535;
+  box-shadow: 0 6px 20px rgba(224, 62, 62, 0.45);
+}
+
+.play-fab:active {
+  transform: scale(0.92);
+}
+
+.play-fab:disabled {
+  background: var(--color-border);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.play-fab svg {
+  width: 22px;
+  height: 22px;
+  pointer-events: none;
+}
+
+
+/* ============================================================
+   SECTION CARDS
+   ============================================================ */
+.section-card-wrapper {
+  margin-bottom: 0;
+  border-radius: 0;
+  overflow: hidden;
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg);
+  transition: border-left-color var(--transition);
+}
+
+/* Section cards no longer expand inline — body is always hidden */
+
+.section-card-wrapper.dragging {
+  position: fixed;
+  left: 0;
+  right: 0;
+  z-index: 300;
+  box-shadow: var(--shadow-lg);
+  border-radius: 0;
+  transform: scale(1.01);
+  opacity: 0.96;
+  pointer-events: none;
+}
+
+/* Placeholder shown in list while dragging */
+.section-placeholder {
+  margin-bottom: 0;
+  border-radius: 0;
+  border: none;
+  border-bottom: 2px dashed var(--color-border);
+  background: var(--color-surface);
+}
+
+/* Section card header row — tapping opens the section sheet */
+.section-card-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 13px var(--space-md);
+  min-height: var(--touch);
+  cursor: pointer;
+  user-select: none;
+}
+
+.section-card-header:active {
+  background: var(--color-surface);
+}
+
+/* Drag handle — hidden unless edit mode */
+.section-drag-handle {
+  display: none;
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+  padding: 4px 2px;
+  cursor: grab;
+}
+
+.section-drag-handle svg {
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+}
+
+.screen-song.edit-mode .section-drag-handle {
+  display: flex;
+  align-items: center;
+}
+
+/* Label */
+.section-card-label {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.1px;
+  color: var(--color-text);
+  flex-shrink: 0;
+}
+
+/* Bar count pill */
+.section-card-bars {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+/* Chord preview — fades, truncates */
+.section-card-chords {
+  flex: 1;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: right;
+  margin-left: auto;
+  padding-right: var(--space-xs);
+}
+
+/* Chevron icon */
+.section-chevron {
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+  transition: transform 220ms ease;
+  display: flex;
+  align-items: center;
+}
+
+.section-chevron svg {
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+}
+
+/* Chevron always points right (section cards no longer have inline expand) */
+
+/* Expanded body */
+.section-card-body {
+  border-top: 1px solid var(--color-border);
+  display: none;
+}
+
+.section-card-wrapper.expanded .section-card-body {
+  display: block;
+}
+
+/* Section row — each expanded section row */
+.section-row {
+  padding: var(--space-md) var(--space-md) var(--space-sm);
+}
+
+.section-row + .section-row {
+  padding-top: 0;
+}
+
+.section-row-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: var(--space-sm);
+}
+
+
+/* ============================================================
+   LABEL PICKER
+   ============================================================ */
+.label-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.label-chip {
+  height: 36px;
+  padding: 0 12px;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: 100px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--font);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+  white-space: nowrap;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.label-chip:active {
+  background: var(--color-surface-2);
+}
+
+.label-chip.selected {
+  background: var(--color-text);
+  color: #fff;
+  border-color: var(--color-text);
+}
+
+.label-chip.custom-chip {
+  font-style: italic;
+  color: var(--color-text-secondary);
+}
+
+/* Recents divider */
+.label-recents-divider {
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: var(--color-border);
+  margin: var(--space-xs) 0;
+}
+
+/* Custom label inline input */
+.label-custom-input-wrap {
+  display: none;
+  margin-top: var(--space-sm);
+}
+
+.label-custom-input-wrap.visible {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+.label-custom-input {
+  flex: 1;
+  height: 40px;
+  padding: 0 var(--space-md);
+  font-size: 15px;
+  font-family: var(--font);
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color var(--transition);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.label-custom-input:focus {
+  border-color: var(--color-text);
+}
+
+.btn-custom-label-done {
+  height: 40px;
+  padding: 0 var(--space-md);
+  background: var(--color-text);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font);
+  cursor: pointer;
+  white-space: nowrap;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+
+/* ============================================================
+   BAR COUNT CONTROL
+   ============================================================ */
+.bar-count-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.bar-chips {
+  display: flex;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+}
+
+.bar-chip {
+  height: 36px;
+  min-width: 44px;
+  padding: 0 12px;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 500;
+  font-family: var(--font);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.bar-chip:active {
+  background: var(--color-surface-2);
+}
+
+.bar-chip.selected {
+  background: var(--color-text);
+  color: #fff;
+  border-color: var(--color-text);
+}
+
+/* Bar stepper — reuses .bpm-stepper styles, just override width */
+.bar-stepper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  max-width: 180px;
+}
+
+
+/* ============================================================
+   CHORD STRIP
+   ============================================================ */
+.chord-strip-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-height: 42px;
+}
+
+.chord-strip {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 4px 0;
+  min-width: 0;
+}
+
+.chord-strip::-webkit-scrollbar { display: none; }
+
+.chord-strip-empty {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+.chord-pill {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 6px 0 11px;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: 100px;
+  white-space: nowrap;
+  gap: 2px;
+  touch-action: manipulation;
+  transition: border-color var(--transition);
+}
+
+.chord-pill.out-of-key {
+  border-color: var(--color-danger);
+}
+
+.chord-pill-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1;
+}
+
+.chord-pill.out-of-key .chord-pill-name {
+  color: var(--color-danger);
+}
+
+.chord-pill-remove {
+  width: 26px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  border-radius: 0 100px 100px 0;
+  -webkit-appearance: none;
+  appearance: none;
+  touch-action: manipulation;
+}
+
+.chord-pill-remove svg {
+  width: 11px;
+  height: 11px;
+  pointer-events: none;
+}
+
+.chord-pill-remove:active { color: var(--color-danger); }
+
+.btn-add-chord {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-surface);
+  border: 1.5px dashed var(--color-border);
+  border-radius: 50%;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  color: var(--color-text-secondary);
+  touch-action: manipulation;
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+}
+
+.btn-add-chord:active,
+.btn-add-chord.active {
+  background: var(--color-text);
+  border-color: var(--color-text);
+  color: #fff;
+}
+
+
+/* ============================================================
+   CHORD PALETTE
+   ============================================================ */
+.chord-palette {
+  display: none;
+  border-top: 1px solid var(--color-border);
+  padding: var(--space-sm) var(--space-md) var(--space-md);
+}
+
+.chord-palette.open { display: block; }
+
+.chord-palette-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-sm);
+}
+
+.chord-palette-key-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.btn-close-palette {
+  height: 28px;
+  padding: 0 var(--space-sm);
+  background: none;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font);
+  color: var(--color-accent);
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  touch-action: manipulation;
+}
+
+.chord-palette-group-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-secondary);
+  margin-bottom: 6px;
+  margin-top: var(--space-sm);
+}
+
+.chord-palette-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.chord-palette-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: auto;
+  min-height: 42px;
+  padding: 6px 12px 5px;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  font-family: var(--font);
+  color: var(--color-text);
+  cursor: pointer;
+  white-space: nowrap;
+  -webkit-appearance: none;
+  appearance: none;
+  touch-action: manipulation;
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+}
+
+.chord-palette-chip:active {
+  background: var(--color-text);
+  color: #fff;
+  border-color: var(--color-text);
+}
+
+.chip-name {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.chip-numeral {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  margin-top: 3px;
+  line-height: 1;
+  letter-spacing: 0.3px;
+}
+
+.chord-palette-chip:active .chip-numeral {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+
+/* ============================================================
+   SECTION ACTION BUTTONS
+   ============================================================ */
+.section-actions {
+  display: flex;
+  align-items: center;
+  border-top: 1px solid var(--color-border);
+  padding: 0 var(--space-sm);
+}
+
+.btn-section-action {
+  flex: 1;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--font);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: color var(--transition), background var(--transition);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.btn-section-action:active {
+  background: var(--color-surface-2);
+}
+
+.btn-section-action svg {
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+}
+
+.btn-section-action.destructive {
+  color: var(--color-danger);
+}
+
+.btn-section-action.inactive {
+  opacity: 0.3;
+  cursor: default;
+  pointer-events: none;
+}
+
+.btn-section-action.playing {
+  color: var(--color-accent);
+}
+
+/* Separator between action buttons */
+.section-action-sep {
+  width: 1px;
+  height: 20px;
+  background: var(--color-border);
+  flex-shrink: 0;
+}
+
+
+/* ============================================================
+   INSERT AFFORDANCE (edit mode only)
+   ============================================================ */
+.insert-affordance {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 2px var(--space-md);
+  margin-bottom: var(--space-sm);
+}
+
+.screen-song.edit-mode .insert-affordance {
+  display: flex;
+}
+
+.btn-insert {
+  height: 28px;
+  padding: 0 var(--space-md);
+  background: var(--color-surface-2);
+  border: 1.5px dashed var(--color-border);
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font);
+  -webkit-appearance: none;
+  appearance: none;
+  transition: background var(--transition);
+}
+
+.btn-insert:active {
+  background: var(--color-border);
+}
+
+
+/* ============================================================
+   EDIT MODE TOGGLE
+   ============================================================ */
+.btn-edit-mode {
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font);
+  color: var(--color-accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  height: var(--touch);
+  padding: 0 var(--space-sm);
+  border-radius: var(--radius-md);
+  white-space: nowrap;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: opacity var(--transition);
+}
+
+.btn-edit-mode:active {
+  opacity: 0.6;
+}
+
+.screen-song.edit-mode .btn-edit-mode {
+  color: var(--color-text);
+}
+
+
+/* ============================================================
+   SECTION SHEET (Phase 5)
+   ============================================================ */
+
+/* Sheet header: section name pill + close button */
+.section-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-md);
+}
+
+.section-sheet-label-pill {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--color-text);
+}
+
+/* "Add Chords" prominent text button — shown when a section has no chords */
+.btn-add-chords {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 14px var(--space-md);
+  background: none;
+  border: 1.5px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-weight: 500;
+  font-family: var(--font);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  margin-top: var(--space-xs);
+  transition: border-color var(--transition), color var(--transition), background var(--transition);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.btn-add-chords:active {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background: var(--color-accent-subtle);
+}
+
+.btn-add-chords svg {
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+}
