@@ -385,10 +385,11 @@ body {
 .fab {
   position: fixed;
   bottom: calc(var(--space-lg) + env(safe-area-inset-bottom));
-  right: var(--space-lg);
-  width: 52px;
+  left: 50%;
+  transform: translateX(-50%);
   height: 52px;
-  border-radius: 50%;
+  padding: 0 32px;
+  border-radius: var(--radius-2xl);
   background: var(--color-text);
   color: #fff;
   border: none;
@@ -396,19 +397,26 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   box-shadow: var(--shadow-lg);
+  font-size: 15px;
+  font-weight: 600;
+  font-family: var(--font);
+  letter-spacing: -0.2px;
   transition: transform var(--transition), box-shadow var(--transition);
   z-index: 100;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .fab:active {
-  transform: scale(0.91);
+  transform: translateX(-50%) scale(0.91);
   box-shadow: var(--shadow-sm);
 }
 
 .fab svg {
-  width: 22px;
-  height: 22px;
+  width: 18px;
+  height: 18px;
   pointer-events: none;
 }
 
@@ -758,17 +766,60 @@ body {
 /* ============================================================
    SECTION OVERVIEW BAR
    ============================================================ */
+/* Header subtitle */
+.header-app-subtitle {
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+/* Song structure minimap */
+.section-minimap-wrap {
+  flex-shrink: 0;
+  position: relative;
+  background: var(--color-bg);
+  padding: 4px 0 0;
+}
+
+.section-minimap-indicator {
+  height: 2px;
+  background: var(--color-accent);
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition: left 0.15s ease, width 0.15s ease;
+  border-radius: 1px;
+  z-index: 1;
+}
+
+.section-minimap {
+  display: flex;
+  height: 6px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.section-minimap-block {
+  height: 100%;
+  flex: none;
+}
+
 .section-overview {
   flex-shrink: 0;
   display: flex;
-  flex-wrap: wrap;           /* wrap to multiple rows for songs with many sections */
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
   border-bottom: 1px solid var(--color-border);
   background: var(--color-bg);
 }
 
+.section-overview::-webkit-scrollbar { display: none; }
+
 .section-overview-segment {
   flex: none;
-  min-width: 56px;
+  min-width: 80px;
   min-height: 64px;
   display: flex;
   flex-direction: column;
@@ -920,35 +971,36 @@ body {
   pointer-events: none;
 }
 
-/* Play FAB — fixed bottom-right, always available on song screen */
+/* Play pill — fixed bottom-center, always available on song screen */
 .play-fab {
   position: fixed;
   bottom: calc(var(--space-lg) + env(safe-area-inset-bottom));
-  right: var(--space-lg);
-  width: 56px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 180px;
   height: 56px;
-  border-radius: 50%;
+  border-radius: var(--radius-2xl);
   background: var(--color-accent);
   color: #fff;
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   box-shadow: 0 4px 16px rgba(224, 62, 62, 0.35);
   cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: var(--font);
+  letter-spacing: -0.2px;
   transition: background var(--transition), box-shadow var(--transition), transform 0.1s;
   z-index: 100;
   -webkit-appearance: none;
   appearance: none;
 }
 
-.play-fab:hover {
-  background: #c73535;
-  box-shadow: 0 6px 20px rgba(224, 62, 62, 0.45);
-}
-
 .play-fab:active {
-  transform: scale(0.92);
+  transform: translateX(-50%) scale(0.95);
 }
 
 .play-fab:disabled {
@@ -958,8 +1010,8 @@ body {
 }
 
 .play-fab svg {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   pointer-events: none;
 }
 
@@ -1016,25 +1068,6 @@ body {
 }
 
 /* Drag handle — hidden unless edit mode */
-.section-drag-handle {
-  display: none;
-  flex-shrink: 0;
-  color: var(--color-text-secondary);
-  padding: 4px 2px;
-  cursor: grab;
-}
-
-.section-drag-handle svg {
-  width: 18px;
-  height: 18px;
-  pointer-events: none;
-}
-
-.screen-song.edit-mode .section-drag-handle {
-  display: flex;
-  align-items: center;
-}
-
 /* Label */
 .section-card-label {
   font-size: 15px;
@@ -1534,74 +1567,6 @@ body {
   height: 20px;
   background: var(--color-border);
   flex-shrink: 0;
-}
-
-
-/* ============================================================
-   INSERT AFFORDANCE (edit mode only)
-   ============================================================ */
-.insert-affordance {
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 2px var(--space-md);
-  margin-bottom: var(--space-sm);
-}
-
-.screen-song.edit-mode .insert-affordance {
-  display: flex;
-}
-
-.btn-insert {
-  height: 28px;
-  padding: 0 var(--space-md);
-  background: var(--color-surface-2);
-  border: 1.5px dashed var(--color-border);
-  border-radius: 100px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-family: var(--font);
-  -webkit-appearance: none;
-  appearance: none;
-  transition: background var(--transition);
-}
-
-.btn-insert:active {
-  background: var(--color-border);
-}
-
-
-/* ============================================================
-   EDIT MODE TOGGLE
-   ============================================================ */
-.btn-edit-mode {
-  font-size: 13px;
-  font-weight: 600;
-  font-family: var(--font);
-  color: var(--color-accent);
-  background: none;
-  border: none;
-  cursor: pointer;
-  height: var(--touch);
-  padding: 0 var(--space-sm);
-  border-radius: var(--radius-md);
-  white-space: nowrap;
-  -webkit-appearance: none;
-  appearance: none;
-  transition: opacity var(--transition);
-}
-
-.btn-edit-mode:active {
-  opacity: 0.6;
-}
-
-.screen-song.edit-mode .btn-edit-mode {
-  color: var(--color-text);
 }
 
 

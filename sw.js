@@ -1,14 +1,14 @@
-const CACHE_NAME = 'chord-v6';
+const CACHE_NAME = 'chord-v7';
 const STATIC_ASSETS = [
   './',
   './index.html',
-  './style.css?v=6',
-  './audio.js?v=6',
-  './data.js?v=6',
-  './state.js?v=6',
-  './theory.js?v=6',
-  './ui.js?v=6',
-  './app.js?v=6',
+  './style.css?v=7',
+  './audio.js?v=7',
+  './data.js?v=7',
+  './state.js?v=7',
+  './theory.js?v=7',
+  './ui.js?v=7',
+  './app.js?v=7',
   './manifest.json',
   './icon.svg',
 ];

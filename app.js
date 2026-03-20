@@ -230,17 +230,7 @@ const App = {
     const screen = document.getElementById('screen-song');
     if (!screen) return;
 
-    // ── Edit mode toggle ────────────────────────────────────────────
-    document.getElementById('btn-edit-mode')?.addEventListener('click', () => {
-      // Close open section sheet when entering edit mode
-      if (State.activeSectionId) this._closeSectionSheet();
-      State.editMode = !State.editMode;
-      screen.classList.toggle('edit-mode', State.editMode);
-      const btn = document.getElementById('btn-edit-mode');
-      if (btn) btn.textContent = State.editMode ? 'Done' : 'Edit';
-    });
-
-    // ── Edit song metadata ──────────────────────────────────────────
+    // ── Edit song metadata (mixer icon) ────────────────────────────
     document.getElementById('btn-edit-meta')?.addEventListener('click', () => {
       this._openEditMetaSheet(songId);
     });
@@ -251,6 +241,11 @@ const App = {
       if (!seg) return;
       this._openSectionSheet(songId, seg.dataset.sectionId);
     });
+
+    // ── Minimap scroll sync ──────────────────────────────────────
+    document.getElementById('section-overview')?.addEventListener('scroll', () => {
+      UI._updateMinimapIndicator();
+    }, { passive: true });
 
     // ── Play FAB ────────────────────────────────────────────────────
     document.getElementById('btn-play-fab')?.addEventListener('click', () => {
@@ -299,32 +294,21 @@ const App = {
           State.activeSong = Data.getSong(songId);
           UI.renderSectionList(State.activeSong);
           UI.renderOverviewBar(State.activeSong);
+          UI.renderMinimap(State.activeSong);
           UI.updatePlayFabState(State.activeSong);
           this._bindSectionListEvents(songId);
           this._openSectionSheet(songId, section.id);
           break;
         }
 
-        case 'insert-section': {
-          const idx = parseInt(e.target.closest('[data-insert-index]')?.dataset?.insertIndex, 10);
-          const section = Data.addSectionAt(songId, idx);
-          if (section) {
-            State.activeSong = Data.getSong(songId);
-            UI.renderSectionList(State.activeSong);
-            UI.renderOverviewBar(State.activeSong);
-            this._bindSectionListEvents(songId);
-            this._openSectionSheet(songId, section.id);
-          }
-          break;
-        }
       }
     };
 
     list.addEventListener('click', list._sectionHandler);
 
-    // Drag handles
-    list.querySelectorAll('[data-drag-handle]').forEach((handle) => {
-      this._attachDragReorder(handle, songId);
+    // Long-press to reorder
+    list.querySelectorAll('.section-card-wrapper').forEach((wrapper) => {
+      this._attachLongPressDrag(wrapper, songId);
     });
   },
 
@@ -369,6 +353,7 @@ const App = {
 
     UI._updateBarFooter(song.sections || []);
     UI.renderOverviewBar(song);
+    UI.renderMinimap(song);
   },
 
   _duplicateSection(songId, sectionId) {
@@ -378,6 +363,7 @@ const App = {
     this._closeSectionSheet();
     UI.renderSectionList(State.activeSong);
     UI.renderOverviewBar(State.activeSong);
+    UI.renderMinimap(State.activeSong);
     UI.updatePlayFabState(State.activeSong);
     this._bindSectionListEvents(songId);
     // Open the duplicated section's sheet
@@ -395,6 +381,7 @@ const App = {
     this._closeSectionSheet();
     UI.renderSectionList(State.activeSong);
     UI.renderOverviewBar(State.activeSong);
+    UI.renderMinimap(State.activeSong);
     UI.updatePlayFabState(State.activeSong);
     this._bindSectionListEvents(songId);
   },
@@ -603,21 +590,19 @@ const App = {
 
   // ── Drag-to-reorder ───────────────────────────────────────────────────
 
-  _attachDragReorder(handle, songId) {
+  _attachLongPressDrag(wrapper, songId) {
+    let longPressTimer = null;
+    let isDragging = false;
     let activeDrag = null;
+    let startX = 0;
+    let startY = 0;
 
     const getWrappers = () =>
       [...document.querySelectorAll('#section-list .section-card-wrapper:not(.dragging)')];
 
-    handle.addEventListener('touchstart', (e) => {
-      e.stopPropagation();
-      const wrapper = handle.closest('.section-card-wrapper');
-      if (!wrapper) return;
-
+    const initDrag = (touch) => {
       const rect = wrapper.getBoundingClientRect();
-      const touch = e.touches[0];
 
-      // Create placeholder same height
       const placeholder = document.createElement('div');
       placeholder.className = 'section-placeholder';
       placeholder.style.height = `${rect.height}px`;
@@ -629,23 +614,45 @@ const App = {
       wrapper.style.left   = `${rect.left}px`;
 
       activeDrag = {
-        wrapper,
         placeholder,
         startY: touch.clientY,
         origTop: rect.top,
-        sectionId: wrapper.dataset.sectionId,
       };
+    };
+
+    wrapper.addEventListener('touchstart', (e) => {
+      // Don't start long press on interactive elements
+      if (e.target.closest('button, input, a')) return;
+
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+
+      longPressTimer = setTimeout(() => {
+        isDragging = true;
+        if (navigator.vibrate) navigator.vibrate(30);
+        initDrag(e.touches[0]);
+      }, 600);
     }, { passive: true });
 
-    handle.addEventListener('touchmove', (e) => {
-      if (!activeDrag) return;
+    wrapper.addEventListener('touchmove', (e) => {
+      if (!isDragging) {
+        // Cancel if finger moved > 10px before long-press fires (user is scrolling)
+        if (longPressTimer) {
+          const dx = e.touches[0].clientX - startX;
+          const dy = e.touches[0].clientY - startY;
+          if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+            clearTimeout(longPressTimer);
+            longPressTimer = null;
+          }
+        }
+        return;
+      }
       e.preventDefault();
 
       const touch = e.touches[0];
       const dy = touch.clientY - activeDrag.startY;
-      activeDrag.wrapper.style.top = `${activeDrag.origTop + dy}px`;
+      wrapper.style.top = `${activeDrag.origTop + dy}px`;
 
-      // Find where placeholder should go
       const wrappers = getWrappers();
       const dragMid = touch.clientY;
 
@@ -657,7 +664,6 @@ const App = {
           return;
         }
       }
-      // Below all — put at end
       const list = document.getElementById('section-list');
       const footer = document.getElementById('section-list-footer');
       if (footer) list.insertBefore(activeDrag.placeholder, footer);
@@ -665,37 +671,45 @@ const App = {
     }, { passive: false });
 
     const endDrag = () => {
-      if (!activeDrag) return;
-      const { wrapper, placeholder, sectionId } = activeDrag;
-      activeDrag = null;
+      clearTimeout(longPressTimer);
+      longPressTimer = null;
+      if (!isDragging || !activeDrag) {
+        isDragging = false;
+        return;
+      }
+      isDragging = false;
 
-      // Snap card into placeholder
       wrapper.classList.remove('dragging');
       wrapper.style.top   = '';
       wrapper.style.width = '';
       wrapper.style.left  = '';
+      activeDrag.placeholder.replaceWith(wrapper);
 
-      placeholder.replaceWith(wrapper);
-
-      // Collect new order from DOM
       const newIds = [...document.querySelectorAll('#section-list .section-card-wrapper')]
         .map((w) => w.dataset.sectionId);
 
       Data.reorderSections(songId, newIds);
       State.activeSong = Data.getSong(songId);
       UI.renderOverviewBar(State.activeSong);
+      UI.renderMinimap(State.activeSong);
+      activeDrag = null;
     };
 
-    handle.addEventListener('touchend',    endDrag);
-    handle.addEventListener('touchcancel', () => {
-      if (!activeDrag) return;
-      const { wrapper, placeholder } = activeDrag;
-      activeDrag = null;
+    wrapper.addEventListener('touchend', endDrag);
+    wrapper.addEventListener('touchcancel', () => {
+      clearTimeout(longPressTimer);
+      longPressTimer = null;
+      if (!isDragging || !activeDrag) {
+        isDragging = false;
+        return;
+      }
+      isDragging = false;
       wrapper.classList.remove('dragging');
       wrapper.style.top   = '';
       wrapper.style.width = '';
       wrapper.style.left  = '';
-      placeholder.replaceWith(wrapper);
+      activeDrag.placeholder.replaceWith(wrapper);
+      activeDrag = null;
     });
   },
 

@@ -70,7 +70,12 @@ const UI = {
     // Header
     const header = this.el('div', 'header');
     const titleEl = this.el('div', 'header-app-title');
-    titleEl.textContent = 'Chord';
+    const nameSpan = document.createElement('span');
+    nameSpan.textContent = 'Chord ';
+    const subSpan = this.el('span', 'header-app-subtitle');
+    subSpan.textContent = 'pocket arranger';
+    titleEl.appendChild(nameSpan);
+    titleEl.appendChild(subSpan);
     header.appendChild(titleEl);
     screen.appendChild(header);
 
@@ -81,13 +86,11 @@ const UI = {
     content.appendChild(list);
     screen.appendChild(content);
 
-    // FAB
+    // FAB — centered pill
     const fab = this.el('button', 'fab');
     fab.id = 'fab-new-song';
     fab.setAttribute('aria-label', 'New song');
-    fab.appendChild(this.svg(
-      '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>'
-    ));
+    fab.appendChild(document.createTextNode('Add Song'));
     screen.appendChild(fab);
 
     return screen;
@@ -445,7 +448,6 @@ const UI = {
 
     const screen = this.el('div', 'screen active screen-song');
     screen.id = 'screen-song';
-    if (State.editMode) screen.classList.add('edit-mode');
 
     // ── Header ──────────────────────────────────────────────────────
     const header = this.el('div', 'header');
@@ -470,27 +472,36 @@ const UI = {
     centre.appendChild(songMetaEl);
     header.appendChild(centre);
 
-    // Right actions: edit mode toggle + edit metadata
+    // Right actions: song settings (mixer icon)
     const rightActions = this.el('div', 'song-view-header-actions');
 
-    const editModeBtn = this.el('button', 'btn-edit-mode');
-    editModeBtn.id = 'btn-edit-mode';
-    editModeBtn.textContent = State.editMode ? 'Done' : 'Edit';
-    rightActions.appendChild(editModeBtn);
-
-    const editMetaBtn = this.el('button', 'btn-icon');
-    editMetaBtn.id = 'btn-edit-meta';
-    editMetaBtn.setAttribute('aria-label', 'Edit song details');
-    editMetaBtn.appendChild(this.svg(
-      '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>' +
-      '<path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>'
+    const mixerBtn = this.el('button', 'btn-icon');
+    mixerBtn.id = 'btn-edit-meta';
+    mixerBtn.setAttribute('aria-label', 'Song settings');
+    mixerBtn.appendChild(this.svg(
+      '<line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/>' +
+      '<line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/>' +
+      '<line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/>' +
+      '<line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/>' +
+      '<line x1="17" y1="16" x2="23" y2="16"/>'
     ));
-    rightActions.appendChild(editMetaBtn);
+    rightActions.appendChild(mixerBtn);
 
     header.appendChild(rightActions);
     screen.appendChild(header);
 
-    // ── Section overview bar ─────────────────────────────────────────
+    // ── Song structure minimap ────────────────────────────────────────
+    const minimapWrap = this.el('div', 'section-minimap-wrap');
+    minimapWrap.id = 'section-minimap-wrap';
+    const minimapIndicator = this.el('div', 'section-minimap-indicator');
+    minimapIndicator.id = 'minimap-indicator';
+    minimapWrap.appendChild(minimapIndicator);
+    const minimapBar = this.el('div', 'section-minimap');
+    minimapBar.id = 'section-minimap';
+    minimapWrap.appendChild(minimapBar);
+    screen.appendChild(minimapWrap);
+
+    // ── Section overview bar (horizontally scrollable) ─────────────
     const overviewBar = this.el('div', 'section-overview');
     overviewBar.id = 'section-overview';
     screen.appendChild(overviewBar);
@@ -502,11 +513,12 @@ const UI = {
     content.appendChild(sectionList);
     screen.appendChild(content);
 
-    // ── Play FAB (fixed, bottom-right) ───────────────────────────────
+    // ── Play pill (fixed, bottom-center) ─────────────────────────────
     const playFab = this.el('button', 'play-fab');
     playFab.id = 'btn-play-fab';
     playFab.setAttribute('aria-label', 'Play song');
     playFab.appendChild(this.svg('<polygon points="5 3 19 12 5 21 5 3"/>'));
+    playFab.appendChild(document.createTextNode(' Play'));
     screen.appendChild(playFab);
 
     const app = document.getElementById('app');
@@ -523,6 +535,7 @@ const UI = {
     // Render sections + overview
     this.renderSectionList(song);
     this.renderOverviewBar(song);
+    this.renderMinimap(song);
   },
 
   // Re-renders the entire section list for the current song
@@ -535,12 +548,8 @@ const UI = {
 
     if (sections.length > 0) {
       for (let i = 0; i < sections.length; i++) {
-        // Insert affordance before each section (edit mode only)
-        container.appendChild(this._buildInsertAffordance(i));
         container.appendChild(this._buildSectionCard(song.id, sections[i]));
       }
-      // Insert affordance after last section
-      container.appendChild(this._buildInsertAffordance(sections.length));
     }
 
     // Footer: total bars
@@ -568,21 +577,6 @@ const UI = {
     footer.textContent = sections.length > 0 ? `Total: ${totalBars} bar${totalBars !== 1 ? 's' : ''}` : '';
   },
 
-  _buildInsertAffordance(index) {
-    const wrap = this.el('div', 'insert-affordance');
-    wrap.dataset.insertIndex = index;
-    const btn = this.el('button', 'btn-insert');
-    btn.dataset.action = 'insert-section';
-    btn.dataset.insertIndex = index;
-    btn.appendChild(this.svg(
-      '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
-      '0 0 24 24'
-    ));
-    btn.appendChild(document.createTextNode('Insert here'));
-    wrap.appendChild(btn);
-    return wrap;
-  },
-
   _buildSectionCard(songId, section) {
     const wrapper = this.el('div', 'section-card-wrapper');
     wrapper.dataset.sectionId = section.id;
@@ -591,16 +585,6 @@ const UI = {
     const header = this.el('div', 'section-card-header');
     header.dataset.action = 'open-section';
     header.dataset.sectionId = section.id;
-
-    // Drag handle (shown in edit mode only)
-    const dragHandle = this.el('div', 'section-drag-handle');
-    dragHandle.dataset.dragHandle = section.id;
-    dragHandle.setAttribute('aria-label', 'Drag to reorder');
-    dragHandle.appendChild(this.svg(
-      '<line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/>',
-      '0 0 24 24'
-    ));
-    header.appendChild(dragHandle);
 
     // Label
     const labelEl = this.el('span', 'section-card-label');
@@ -956,14 +940,8 @@ const UI = {
     }
     container.style.display = '';
 
-    const totalBars = sections.reduce((sum, s) => sum + (s.bars || 0), 0);
     for (const section of sections) {
-      const pct = totalBars > 0
-        ? ((section.bars || 0) / totalBars) * 100
-        : 100 / sections.length;
-
       const seg = this.el('button', 'section-overview-segment');
-      seg.style.width = `${pct}%`;
       seg.dataset.action = 'select-section-overview';
       seg.dataset.sectionId = section.id;
 
@@ -987,6 +965,68 @@ const UI = {
   // No-op kept for compatibility — overview no longer has an inline "active" state.
   updateOverviewActiveState() {},
 
+  // Minimap — grey-tone color per section type
+  _minimapColor(label) {
+    const map = {
+      'Intro': '#c8c8c5', 'Verse': '#ddddd9', 'Pre-Chorus': '#d4d4d0',
+      'Chorus': '#b8b8b4', 'Bridge': '#a8a8a4', 'Solo': '#c0c0bc',
+      'Interlude': '#ccccc8', 'Outro': '#c8c8c5', 'Section': '#d0d0cc',
+    };
+    return map[label] || '#d0d0cc';
+  },
+
+  // Render the minimap blocks (proportional to bar count, full-width, non-scrollable)
+  renderMinimap(song) {
+    const container = document.getElementById('section-minimap');
+    const wrap = document.getElementById('section-minimap-wrap');
+    if (!container || !wrap) return;
+    container.innerHTML = '';
+
+    const sections = song.sections || [];
+    if (sections.length === 0) {
+      wrap.style.display = 'none';
+      return;
+    }
+    wrap.style.display = '';
+
+    const totalBars = sections.reduce((sum, s) => sum + (s.bars || 0), 0);
+    for (const section of sections) {
+      const pct = totalBars > 0
+        ? ((section.bars || 0) / totalBars) * 100
+        : 100 / sections.length;
+      const block = this.el('div', 'section-minimap-block');
+      block.style.width = `${pct}%`;
+      block.style.background = this._minimapColor(section.label);
+      container.appendChild(block);
+    }
+    this._updateMinimapIndicator();
+  },
+
+  // Update the red indicator line position/width based on overview bar scroll
+  _updateMinimapIndicator() {
+    const overview = document.getElementById('section-overview');
+    const indicator = document.getElementById('minimap-indicator');
+    const wrap = document.getElementById('section-minimap-wrap');
+    if (!overview || !indicator || !wrap) return;
+
+    const scrollWidth = overview.scrollWidth;
+    const clientWidth = overview.clientWidth;
+    const scrollLeft  = overview.scrollLeft;
+    const wrapWidth   = wrap.clientWidth;
+
+    if (scrollWidth <= clientWidth) {
+      // Everything visible — indicator spans full width
+      indicator.style.left  = '0px';
+      indicator.style.width = `${wrapWidth}px`;
+      return;
+    }
+
+    const visibleFraction = clientWidth / scrollWidth;
+    const scrollFraction  = scrollLeft / scrollWidth;
+    indicator.style.width = `${visibleFraction * wrapWidth}px`;
+    indicator.style.left  = `${scrollFraction * wrapWidth}px`;
+  },
+
   _songMetaText(song) {
     const drumLabel = { rock:'Rock', reggae:'Reggae', halftime:'Half-time', funk:'Funk' }[song.drumPattern];
     return `${song.key} ${this.modeLabel(song.mode)} · ${song.bpm} BPM`
@@ -1004,7 +1044,7 @@ const UI = {
   // Phase 4/5 — Update play/stop UI without re-rendering any screens.
   // Called by app.js whenever playback state changes.
   updatePlaybackUI(isPlaying, playingSectionId) {
-    // 1. Play FAB (bottom-right)
+    // 1. Play pill (bottom-center)
     const fab = document.getElementById('btn-play-fab');
     if (fab) {
       fab.innerHTML = '';
@@ -1012,10 +1052,12 @@ const UI = {
         fab.appendChild(this.svg(
           '<rect x="5" y="5" width="14" height="14" rx="1" fill="currentColor" stroke="none"/>'
         ));
+        fab.appendChild(document.createTextNode(' Stop'));
         fab.classList.add('active');
         fab.setAttribute('aria-label', 'Stop song');
       } else {
         fab.appendChild(this.svg('<polygon points="5 3 19 12 5 21 5 3"/>'));
+        fab.appendChild(document.createTextNode(' Play'));
         fab.classList.remove('active');
         fab.setAttribute('aria-label', 'Play song');
       }
@@ -1023,7 +1065,13 @@ const UI = {
 
     // 2. Overview bar segments — highlight the playing section
     document.querySelectorAll('.section-overview-segment').forEach((seg) => {
-      seg.classList.toggle('playing', isPlaying && seg.dataset.sectionId === playingSectionId);
+      const isThis = isPlaying && seg.dataset.sectionId === playingSectionId;
+      seg.classList.toggle('playing', isThis);
+      // Auto-scroll the playing section into view
+      if (isThis) {
+        seg.scrollIntoView({ behavior: 'smooth', inline: 'nearest' });
+        setTimeout(() => this._updateMinimapIndicator(), 250);
+      }
     });
 
     // 3. Section play button inside the open sheet (if any)
