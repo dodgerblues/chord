@@ -67,6 +67,9 @@ const UI = {
     const screen = this.el('div', 'screen active');
     screen.id = 'screen-list';
 
+    // Black status bar backing
+    screen.appendChild(this.el('div', 'top-bar'));
+
     // Header
     const header = this.el('div', 'header');
     const titleEl = this.el('div', 'header-app-title');
@@ -448,6 +451,9 @@ const UI = {
 
     const screen = this.el('div', 'screen active screen-song');
     screen.id = 'screen-song';
+
+    // Black status bar backing
+    screen.appendChild(this.el('div', 'top-bar'));
 
     // ── Header ──────────────────────────────────────────────────────
     const header = this.el('div', 'header');
